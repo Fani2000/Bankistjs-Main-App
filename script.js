@@ -82,8 +82,6 @@ const displayMovements = movements => {
   });
 };
 
-displayMovements(account1.movements);
-
 const createUsernames = accs => {
   accs.forEach(acc => {
     acc.username = acc.owner
@@ -102,8 +100,6 @@ const calcPrintBalance = movements => {
   const balance = movements.reduce((acc, cur) => acc + cur, 0);
   labelBalance.textContent = `R${balance}`;
 };
-
-calcPrintBalance(account1.movements);
 
 // Maximum value
 // const calcMax = movements => {
@@ -127,23 +123,44 @@ calcPrintBalance(account1.movements);
 // const min = calcMin(account1.movements);
 // calcInterest(min, max);
 
-const calcDisplaySummary = movements => {
-  const incomes = movements
+const calcDisplaySummary = account => {
+  const incomes = account.movements
     .filter(mov => mov > 0)
     .reduce((acc, cur) => acc + cur, 0);
-  labelSumIn.textContent = `R${incomes}`;
+  labelSumIn.textContent = `R${incomes.toFixed(2)}`;
 
-  const withdrawals = movements
+  const withdrawals = account.movements
     .filter(mov => mov < 0)
     .reduce((acc, cur) => acc + cur, 0);
-  labelSumOut.textContent = `R${Math.abs(withdrawals)}`;
+  labelSumOut.textContent = `R${Math.abs(withdrawals.toFixed(2))}`;
 
-  const interest = movements
+  const interest = account.movements
     .filter(mov => mov > 0)
-    .map(deposit => (deposit * 1.2) / 100)
+    .map(deposit => (deposit * account.interestRate) / 100)
     .reduce((acc, cur) => acc + cur, 0);
 
-  labelSumInterest.textContent = `R${interest}`;
+  labelSumInterest.textContent = `R${interest.toFixed(2)}`;
 };
 
-calcDisplaySummary(account1.movements);
+let user;
+
+// EVENT LISTENERS
+btnLogin.addEventListener('click', ev => {
+  ev.preventDefault();
+  // console.log(first)
+  // console.log(inputLoginUsername.value);
+  // console.log(inputLoginPin.value);
+
+  user = accounts.find(acc => acc.username === inputLoginUsername.value);
+  if (user?.pin === Number(inputLoginPin.value)) {
+    // console.log(user);
+    // console.log('LOGIN');
+    labelWelcome.textContent = `Welcome back, ${user?.owner.split(' ')[0]}`;
+    containerApp.style.opacity = 100;
+    inputLoginUsername.value = inputLoginPin.value = '';
+    inputLoginPin.blur();
+    displayMovements(user.movements);
+    calcPrintBalance(user.movements);
+    calcDisplaySummary(user);
+  }
+});
