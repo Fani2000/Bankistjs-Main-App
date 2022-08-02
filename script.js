@@ -6,7 +6,7 @@
 
 // Data
 const account1 = {
-  owner: 'Fani',
+  owner: 'Fani Keorapetse',
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
   pin: 1111,
@@ -61,17 +61,89 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
+const displayMovements = movements => {
+  // console.log(movements);
+  containerMovements.innerHTML = '';
 
-const currencies = new Map([
-  ['USD', 'United States dollar'],
-  ['EUR', 'Euro'],
-  ['GBP', 'Pound sterling'],
-]);
+  movements.forEach((movement, i) => {
+    const type = movement > 0 ? 'deposit' : 'withdrawal';
 
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+    const html = `
+        <div class="movements__row">
+          <div class="movements__type movements__type--${type}">${
+      i + 1
+    } deposit</div>
+          <div class="movements__date">3 days ago</div>
+          <div class="movements__value">R${movement}</div>
+        </div>
+    `;
 
-/////////////////////////////////////////////////
-// console.log(accounts);
+    containerMovements.insertAdjacentHTML('afterbegin', html);
+  });
+};
+
+displayMovements(account1.movements);
+
+const createUsernames = accs => {
+  accs.forEach(acc => {
+    acc.username = acc.owner
+      .toLowerCase()
+      .split(' ')
+      .map(name => name[0])
+      .join('');
+  });
+};
+
+// accounts.forEach(account => createUsernames(account.owner));
+createUsernames(accounts);
+console.log(accounts);
+
+const calcPrintBalance = movements => {
+  const balance = movements.reduce((acc, cur) => acc + cur, 0);
+  labelBalance.textContent = `R${balance}`;
+};
+
+calcPrintBalance(account1.movements);
+
+// Maximum value
+// const calcMax = movements => {
+//   const max = movements.reduce((acc, mov) => (acc > mov ? acc : mov), 0);
+//   labelSumIn.textContent = `R${max}`;
+//   return max;
+// };
+
+// const calcMin = movements => {
+//   const min = movements.reduce((acc, mov) => (acc < mov ? acc : mov), 0);
+//   labelSumOut.textContent = `R${min}`;
+//   return min;
+// };
+
+// const calcInterest = (min, max) => {
+//   const result = max - -1 * min;
+//   labelSumInterest.textContent = `R${result}`;
+// };
+
+// const max = calcMax(account1.movements);
+// const min = calcMin(account1.movements);
+// calcInterest(min, max);
+
+const calcDisplaySummary = movements => {
+  const incomes = movements
+    .filter(mov => mov > 0)
+    .reduce((acc, cur) => acc + cur, 0);
+  labelSumIn.textContent = `R${incomes}`;
+
+  const withdrawals = movements
+    .filter(mov => mov < 0)
+    .reduce((acc, cur) => acc + cur, 0);
+  labelSumOut.textContent = `R${Math.abs(withdrawals)}`;
+
+  const interest = movements
+    .filter(mov => mov > 0)
+    .map(deposit => (deposit * 1.2) / 100)
+    .reduce((acc, cur) => acc + cur, 0);
+
+  labelSumInterest.textContent = `R${interest}`;
+};
+
+calcDisplaySummary(account1.movements);
