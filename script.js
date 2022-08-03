@@ -61,11 +61,13 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-const displayMovements = movements => {
+const displayMovements = (movements, sort = false) => {
   // console.log(movements);
   containerMovements.innerHTML = '';
 
-  movements.forEach((movement, i) => {
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
+  movs.forEach((movement, i) => {
     const type = movement > 0 ? 'deposit' : 'withdrawal';
 
     const html = `
@@ -96,9 +98,10 @@ const createUsernames = accs => {
 createUsernames(accounts);
 console.log(accounts);
 
-const calcPrintBalance = movements => {
-  const balance = movements.reduce((acc, cur) => acc + cur, 0);
-  labelBalance.textContent = `R${balance}`;
+const calcPrintBalance = account => {
+  const balance = account.movements.reduce((acc, cur) => acc + cur, 0);
+  account.balance = balance;
+  labelBalance.textContent = `R${account.balance}`;
 };
 
 // Maximum value
@@ -159,8 +162,72 @@ btnLogin.addEventListener('click', ev => {
     containerApp.style.opacity = 100;
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
-    displayMovements(user.movements);
-    calcPrintBalance(user.movements);
-    calcDisplaySummary(user);
+    updateUI(user);
   }
+});
+
+const updateUI = acc => {
+  displayMovements(acc.movements);
+  calcPrintBalance(acc);
+  calcDisplaySummary(acc);
+};
+
+btnTransfer.addEventListener('click', ev => {
+  ev.preventDefault();
+  const amount = Number(inputTransferAmount.value);
+  const receiverAcc = accounts.find(
+    acc => acc.username === inputTransferTo.value
+  );
+
+  inputTransferAmount.value = inputTransferTo.value = '';
+  inputTransferAmount.blur();
+  inputTransferTo.blur();
+
+  if (
+    amount > 0 &&
+    user.balance >= amount &&
+    receiverAcc?.username !== user.username
+  ) {
+    // console.log(user, receiverAcc);
+    user.movements.push(-amount);
+    receiverAcc.movements.push(amount);
+    updateUI(user);
+  }
+});
+
+btnLoan.addEventListener('click', ev => {
+  ev.preventDefault();
+  const amount = Number(inputLoanAmount.value);
+  if (amount > 0 && user.movements.some(mov => mov >= amount * 0.1)) {
+    user.movements.push(amount);
+    updateUI(user);
+    inputLoanAmount.value = '';
+    inputLoanAmount.blur();
+  }
+});
+
+btnClose.addEventListener('click', ev => {
+  ev.preventDefault();
+  if (
+    inputCloseUsername.value === user.username &&
+    Number(inputClosePin.value) === user.pin
+  ) {
+    const index = accounts.findIndex(acc => acc.username === user.username);
+    accounts.splice(index, 1);
+    containerApp.style.opacity = 0;
+
+    inputClosePin.value = inputCloseUsername.value = '';
+    labelWelcome.textContent = 'Log in to get started';
+
+    inputClosePin.blur();
+    inputCloseUsername.blur();
+  }
+});
+
+let sort = false;
+
+btnSort.addEventListener('click', ev => {
+  ev.preventDefault();
+  sort = !sort;
+  displayMovements(user.movements, sort);
 });
